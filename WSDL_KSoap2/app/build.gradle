@@ -19,12 +19,15 @@ android {
     }
 }
 
+repositories {
+    // Repositório do KSOAP2
+    maven { url 'https://oss.sonatype.org/content/repositories/ksoap2-android-releases/' }
+}
+
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
-        exclude group: 'com.android.support', module: 'support-annotations'
-    })
     compile 'com.android.support:appcompat-v7:25.1.1'
     compile 'br.com.livroandroid:android-utils:1.0.5'
+    compile 'com.google.code.ksoap2-android:ksoap2-android:3.6.2'
     testCompile 'junit:junit:4.12'
 }

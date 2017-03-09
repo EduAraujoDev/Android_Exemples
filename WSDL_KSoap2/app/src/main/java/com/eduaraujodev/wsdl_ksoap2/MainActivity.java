@@ -7,17 +7,15 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
-import org.w3c.dom.Element;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-
-import livroandroid.lib.utils.HttpHelper;
-import livroandroid.lib.utils.XMLUtils;
+import org.ksoap2.SoapEnvelope;
+import org.ksoap2.SoapFault;
+import org.ksoap2.serialization.SoapObject;
+import org.ksoap2.serialization.SoapPrimitive;
+import org.ksoap2.serialization.SoapSerializationEnvelope;
+import org.ksoap2.transport.HttpTransportSE;
 
 public class MainActivity extends AppCompatActivity {
-    String URL = "https://www.w3schools.com/xml/tempconvert.asmx/CelsiusToFahrenheit";
+    String URL = "https://www.w3schools.com/xml/CelsiusToFahrenheit";
 
     private EditText etCelcius;
     private EditText etFahrenheit;
@@ -38,21 +36,9 @@ public class MainActivity extends AppCompatActivity {
                 new Thread() {
                     @Override
                     public void run() {
-                        String celcius = etCelcius.getText().toString();
-
-                        // Parâmetros para enviar por post
-                        Map<String, String> params = new HashMap<String, String>();
-                        params.put("Celsius", celcius);
-
                         try {
-                            // Retorno: <string xmlns="http://www.w3schools.com/webservices/">33.8</string>
-                            HttpHelper http = new HttpHelper();
-                            String s = http.doPost(URL, params, "UTF-8");
-
-                            Element root = XMLUtils.getRoot(s, "UTF-8");
-
-                            // Lê o texto do XML
-                            final String fahrenheit = XMLUtils.getText(root);
+                            String celcius = etCelcius.getText().toString();
+                            final String fahrenheit = CelsiusToFahrenheit("http://www.w3schools.com/xml/tempconvert.asmx", celcius);
 
                             runOnUiThread(new Runnable() {
                                 @Override
@@ -60,12 +46,55 @@ public class MainActivity extends AppCompatActivity {
                                     etFahrenheit.setText(fahrenheit);
                                 }
                             });
-                        } catch (IOException e) {
+                        } catch (Exception e) {
                             Log.e("livroandroid", "Erro: " + e.getMessage(), e);
                         }
                     }
                 }.start();
             }
         });
+    }
+
+    public String CelsiusToFahrenheit(String url, String celsius) throws Exception {
+        SoapSerializationEnvelope soapEnvelope = new SoapSerializationEnvelope(SoapEnvelope.VER11);
+        soapEnvelope.implicitTypes = true;
+        soapEnvelope.dotNet = true;
+        SoapObject soapReq = new SoapObject("http://www.w3schools.com/xml/", "CelsiusToFahrenheit");
+        soapReq.addProperty("Celsius", celsius);
+        soapEnvelope.setOutputSoapObject(soapReq);
+
+        int timeOut = 60000;
+        HttpTransportSE httpTransport = new HttpTransportSE(url, timeOut);
+
+        try {
+            // Faz a chamada
+            httpTransport.call(URL, soapEnvelope);
+            // Lê o retorno
+            Object retObj = soapEnvelope.bodyIn;
+            if (retObj instanceof SoapFault) {
+                SoapFault fault = (SoapFault) retObj;
+                Exception ex = new Exception(fault.faultstring);
+                throw ex;
+            } else {
+                // Retorno OK
+                SoapObject result = (SoapObject) retObj;
+
+                if (result.getPropertyCount() > 0) {
+                    Object obj = result.getProperty(0);
+                    
+                    if (obj != null && obj.getClass().equals(SoapPrimitive.class)) {
+                        SoapPrimitive j = (SoapPrimitive) obj;
+                        String resultVariable = j.toString();
+                        return resultVariable;
+                    } else if (obj != null && obj instanceof String) {
+                        String resultVariable = (String) obj;
+                        return resultVariable;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            throw e;
+        }
+        return "";
     }
 }
