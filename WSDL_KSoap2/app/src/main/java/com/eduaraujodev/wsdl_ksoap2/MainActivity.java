@@ -38,7 +38,7 @@ public class MainActivity extends AppCompatActivity {
                     public void run() {
                         try {
                             String celcius = etCelcius.getText().toString();
-                            final String fahrenheit = CelsiusToFahrenheit("http://www.w3schools.com/xml/tempconvert.asmx", celcius);
+                            final String fahrenheit = CelsiusToFahrenheit("https://www.w3schools.com/xml/tempconvert.asmx", celcius);
 
                             runOnUiThread(new Runnable() {
                                 @Override
@@ -59,7 +59,7 @@ public class MainActivity extends AppCompatActivity {
         SoapSerializationEnvelope soapEnvelope = new SoapSerializationEnvelope(SoapEnvelope.VER11);
         soapEnvelope.implicitTypes = true;
         soapEnvelope.dotNet = true;
-        SoapObject soapReq = new SoapObject("http://www.w3schools.com/xml/", "CelsiusToFahrenheit");
+        SoapObject soapReq = new SoapObject("https://www.w3schools.com/xml/", "CelsiusToFahrenheit");
         soapReq.addProperty("Celsius", celsius);
         soapEnvelope.setOutputSoapObject(soapReq);
 
@@ -81,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
 
                 if (result.getPropertyCount() > 0) {
                     Object obj = result.getProperty(0);
-                    
+
                     if (obj != null && obj.getClass().equals(SoapPrimitive.class)) {
                         SoapPrimitive j = (SoapPrimitive) obj;
                         String resultVariable = j.toString();
